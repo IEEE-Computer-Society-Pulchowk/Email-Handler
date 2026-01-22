@@ -41,134 +41,126 @@ jobs/
 - `sender_email`: From address
 - `sender_name`: From display name
 - `spreadsheet_id`: Google Sheet ID from the URL (ignored if `csv_file` is set)
-- `sheet_name`: Name of the sheet tab (ignored if `csv_file` is set)
-- `subject`: Subject line (supports template variables like `{Name}`)
-- `mode`: Either `"individual"` (one email per row) or `"bcc"` (one email to all)
-- `required_columns`: Column names that must exist in the sheet
-- `column_mapping`: Optional mapping to rename sheet/CSV columns for templates
-- `template_vars`: Optional default values for template variables
-- `csv_file`: Optional CSV filename in the job folder; when set, data is loaded from this CSV instead of Google Sheets
+# Email Mailer (Folder-Based)
 
-### template.html Format
+Send personalized or BCC emails using Google Sheets or a local CSV, configured per job via folders.
 
-Use `{ColumnName}` placeholders that will be replaced with values from the sheet:
+## Project Layout
 
-```html
-<!DOCTYPE html>
-<html>
-<body>
-    <p>Dear {Name},</p>
-    <p>Your interview is scheduled for {Time}.</p>
-</body>
-</html>
+```
+.
+├── main.py
+├── mailer_common.py
+├── requirements.txt
+├── credentials.example.json
+├── credentials.json              # put your real OAuth client here
+├── token.json                    # generated after first auth
+└── jobs/
+    ├── test-individual/
+    │   ├── config.json
+    │   └── template.html
+    ├── test-bcc/
+    │   ├── config.json
+    │   └── template.html
+    └── test-csv/
+        ├── config.json
+        ├── data.csv
+        └── template.html
 ```
 
-## Usage
+## Job Folder Reference
 
-### Dry Run (Preview Only)
-```bash
-python main.py jobs/your-job-name --dry-run
-```
+Each job folder must contain `config.json` and `template.html`. Optional: `data.csv` when using a local CSV source.
 
-### Send Emails
-```bash
-python main.py jobs/your-job-name
-```
-
-## Examples
-
-Three example jobs are included:
-
-1. **jobs/test-job/** - Simple test email
-2. **jobs/jan18-interview/** - Interview scheduling (individual mode)
-3. **jobs/bcc-demo/** - Workshop wrap-up (BCC mode)
-
-## Creating a New Job
-
-1. Create a new folder in `jobs/`:
-   ```bash
-   mkdir jobs/my-new-job
-   ```
-
-2. Create `config.json`:
-   ```bash
-   cp jobs/test-job/config.json jobs/my-new-job/
-   # Edit with your values
-   ```
-
-3. Create `template.html`:
-   ```bash
-   cp jobs/test-job/template.html jobs/my-new-job/
-   # Customize your email template
-   ```
-
-4. Test it:
-   ```bash
-   python main.py jobs/my-new-job --dry-run
-   ```
-
-## Modes
-
-### Individual Mode
-Sends one personalized email to each recipient. Each row in the sheet becomes one email.
-
-**Use for:** Interview schedules, certificates, personalized messages
-
-### BCC Mode
-Sends one email to all recipients via BCC. Only requires an "Email" column.
-
-**Use for:** Announcements, newsletters, group updates
-
-## Requirements
-
-- Python 3.7+
-- Google OAuth credentials (`credentials.json`)
-- Required Python packages (see `requirements.txt`)
-
-## Setup Credentials
-
-### 1. Get OAuth Credentials from Google Cloud
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the following APIs:
-   - Gmail API
-   - Google Sheets API
-4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-   - Application type: Desktop application
-   - Download the JSON file
-5. Rename or copy the downloaded file to `credentials.json` in this project root
-
-### 2. Example credentials.json
-
-See `credentials.example.json` for the expected structure:
+### config.json fields
 
 ```json
 {
-  "installed": {
-    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-    "project_id": "your-project-id",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret": "YOUR_CLIENT_SECRET",
-    "redirect_uris": ["http://localhost"]
-  }
+  "sender_email": "you@example.com",
+  "sender_name": "Your Name",
+  "subject": "Subject with {name}",
+  "mode": "individual",              // or "bcc"
+  "required_columns": ["Name", "Email"],
+  "column_mapping": { "Name": "name" },
+  "template_vars": { "organization": "Demo Org" },
+  "spreadsheet_id": "<sheet id>",   // omit when using csv_file
+  "sheet_name": "Sheet1",           // omit when using csv_file
+  "range_name": null,                // optional; defaults to Sheet!A:Z
+  "csv_file": "data.csv"            // optional; load this CSV instead of Sheets
 }
 ```
 
-Replace the placeholder values with your actual credentials from Google Cloud.
+- `sender_email`, `sender_name`: From header.
+- `subject`: Supports template variables.
+- `mode`: `individual` (one per row) or `bcc` (single email to all addresses).
+- `required_columns`: Columns that must exist in the data.
+- `column_mapping`: Rename data columns for template use (e.g., `Name` → `name`).
+- `template_vars`: Defaults merged into every email (useful for organization, event names, etc.).
+- Sheets source: provide `spreadsheet_id` and `sheet_name` (and optional `range_name`).
+- CSV source: set `csv_file` and skip Sheets fields.
 
-## Authentication
+### template.html
 
-First run will open a browser for Google OAuth authentication. The token is saved to `token.json`.
+Use `{placeholder}` values that match either:
+- Mapped column names (after `column_mapping`), or
+- Keys in `template_vars`.
 
-If you get a token error, delete `token.json` and re-authenticate:
-```bash
-rm token.json
-python main.py jobs/test-job --dry-run
+Example snippet:
+```html
+<p>Dear {name},</p>
+<p>Your session is at {time}.</p>
+<p>{organization}</p>
 ```
 
-## Migration from Old System
+## Running
 
-The system now exclusively uses the folder-based job configuration.
+From project root:
+
+Dry run (preview only, no send):
+```bash
+python main.py jobs/test-individual --dry-run
+```
+
+Send emails:
+```bash
+python main.py jobs/test-individual
+```
+
+Use a CSV-based job:
+```bash
+python main.py jobs/test-csv --dry-run
+```
+
+## Modes
+
+- **individual**: one personalized email per row.
+- **bcc**: one email sent to all recipients via BCC (requires at least `Email` column).
+
+## Data Sources
+
+- **Google Sheets**: Uses `spreadsheet_id`, `sheet_name` (and optional `range_name`).
+- **CSV**: If `csv_file` is set, data loads from that file in the job folder.
+
+## Credentials & Auth
+
+1. Create OAuth client (Desktop) in Google Cloud; enable Gmail API and Google Sheets API.
+2. Download the client JSON and save as `credentials.json` in project root (see [credentials.example.json](credentials.example.json)).
+3. First run opens a browser for consent; `token.json` is generated and reused.
+4. If token is expired/revoked, delete `token.json` and rerun.
+
+## Examples
+
+- Individual (Sheets): [jobs/test-individual/config.json](jobs/test-individual/config.json)
+- BCC (Sheets): [jobs/test-bcc/config.json](jobs/test-bcc/config.json)
+- Individual (CSV): [jobs/test-csv/config.json](jobs/test-csv/config.json)
+
+## Environment
+
+- Python 3.7+
+- Install deps: `pip install -r requirements.txt`
+
+## Safety Notes
+
+- Always run with `--dry-run` before sending.
+- Check sender details and subject in the preview output.
+If you get a token error, delete `token.json` and re-authenticate:
