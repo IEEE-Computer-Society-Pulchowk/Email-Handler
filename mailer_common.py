@@ -198,6 +198,10 @@ def load_job_config(job_folder: str) -> Dict:
     config.setdefault("required_columns", ["Email"])
     config.setdefault("template_vars", {})
     config.setdefault("column_mapping", {})
+    # Test fields default to production values if not specified
+    if not csv_file:
+        config.setdefault("test_sheet_name", config["sheet_name"])
+        config.setdefault("test_spreadsheet_id", config["spreadsheet_id"])
     config["template_file"] = str(template_file.absolute())
     
     return config

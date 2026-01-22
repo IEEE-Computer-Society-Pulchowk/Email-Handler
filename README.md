@@ -85,6 +85,8 @@ Each job folder must contain `config.json` and `template.html`. Optional: `data.
   "template_vars": { "organization": "Demo Org" },
   "spreadsheet_id": "<sheet id>",   // omit when using csv_file
   "sheet_name": "Sheet1",           // omit when using csv_file
+  "test_sheet_name": "TestSheet1",  // optional; used with --test flag
+  "test_spreadsheet_id": "<test id>",  // optional; used with --test flag
   "range_name": null,                // optional; defaults to Sheet!A:Z
   "csv_file": "data.csv"            // optional; load this CSV instead of Sheets
 }
@@ -96,8 +98,10 @@ Each job folder must contain `config.json` and `template.html`. Optional: `data.
 - `required_columns`: Columns that must exist in the data.
 - `column_mapping`: Rename data columns for template use (e.g., `Name` → `name`).
 - `template_vars`: Defaults merged into every email (useful for organization, event names, etc.).
-- Sheets source: provide `spreadsheet_id` and `sheet_name` (and optional `range_name`).
-- CSV source: set `csv_file` and skip Sheets fields.
+- `spreadsheet_id`, `sheet_name`: Production sheet source (skip when using `csv_file`).
+- `test_sheet_name`, `test_spreadsheet_id`: Test sheet source; used when `--test` flag is passed. Defaults to production values if omitted.
+- `range_name`: Optional range (defaults to `Sheet!A:Z`).
+- `csv_file`: Optional; load data from this CSV file instead of Sheets.
 
 ### template.html
 
@@ -126,10 +130,19 @@ Send emails:
 python main.py jobs/test-individual
 ```
 
+Use test sheet (if configured):
+```bash
+python main.py jobs/test-individual --test --dry-run
+```
+
 Use a CSV-based job:
 ```bash
 python main.py jobs/test-csv --dry-run
 ```
+
+**Flags:**
+- `--dry-run`: Preview emails without sending.
+- `--test`: Use `test_sheet_name` and `test_spreadsheet_id` instead of production values.
 
 ## Modes
 

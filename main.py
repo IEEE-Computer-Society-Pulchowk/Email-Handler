@@ -65,12 +65,13 @@ MODE_HANDLERS = {
 }
 
 
-def run_job(job_folder: str, dry_run: bool = False):
+def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
     """Run a mail job from a job folder containing config.json and template.html.
     
     Args:
         job_folder: Path to the job folder
         dry_run: If True, preview only without sending
+        use_test: If True, use test_sheet_name and test_spreadsheet_id
     """
     job = load_job_config(job_folder)
     gmail_service, sheets_service = get_services()
@@ -82,10 +83,14 @@ def run_job(job_folder: str, dry_run: bool = False):
             raise SystemExit(f"CSV file not found: {csv_path}")
         df = pd.read_csv(csv_path)
     else:
+        # Use test values if --test flag is set
+        sheet_name = job.get("test_sheet_name", job["sheet_name"]) if use_test else job["sheet_name"]
+        spreadsheet_id = job.get("test_spreadsheet_id", job["spreadsheet_id"]) if use_test else job["spreadsheet_id"]
+        
         df = fetch_sheet_dataframe(
             sheets_service,
-            job["spreadsheet_id"],
-            job["sheet_name"],
+            spreadsheet_id,
+            sheet_name,
             job.get("range_name"),
         )
 
@@ -137,9 +142,14 @@ def main():
         action="store_true",
         help="Preview without sending emails."
     )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Use test_sheet_name and test_spreadsheet_id instead of production values."
+    )
     args = parser.parse_args()
 
-    run_job(args.job_folder, dry_run=args.dry_run)
+    run_job(args.job_folder, dry_run=args.dry_run, use_test=args.test)
 
 
 if __name__ == "__main__":
