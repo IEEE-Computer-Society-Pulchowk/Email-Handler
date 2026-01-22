@@ -201,3 +201,7 @@ def load_job_config(job_folder: str) -> Dict:
     config["template_file"] = str(template_file.absolute())
     
     return config
+
+if __name__ == "__main__":
+    print("This module provides common mailer functions and is not intended to be run directly.")
+    print("Please run main.py to execute mail jobs.")
