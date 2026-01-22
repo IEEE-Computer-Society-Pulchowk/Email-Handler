@@ -15,30 +15,39 @@ Each job is a folder containing:
 ```
 jobs/
   your-job-name/
-    config.json       # Job configuration
-    template.html     # Email HTML template
+   config.json       # Job configuration
+   template.html     # Email HTML template
+   data.csv          # Optional: local CSV data source
 ```
 
 ### config.json Format
 
 ```json
 {
-  "spreadsheet_id": "YOUR_GOOGLE_SHEET_ID",
-  "sheet_name": "SHEET_TAB_NAME",
-  "subject": "Email Subject - {Name}",
-  "mode": "individual",
-  "required_columns": ["Name", "Email"],
-  "template_vars": {}
+   "sender_email": "you@example.com",
+   "sender_name": "Your Name",
+   "spreadsheet_id": "YOUR_GOOGLE_SHEET_ID",
+   "sheet_name": "SHEET_TAB_NAME",
+   "subject": "Email Subject - {Name}",
+   "mode": "individual",
+   "required_columns": ["Name", "Email"],
+   "column_mapping": {},
+   "template_vars": {},
+   "csv_file": "data.csv"
 }
 ```
 
 **Fields:**
-- `spreadsheet_id`: Google Sheet ID from the URL
-- `sheet_name`: Name of the sheet tab
+- `sender_email`: From address
+- `sender_name`: From display name
+- `spreadsheet_id`: Google Sheet ID from the URL (ignored if `csv_file` is set)
+- `sheet_name`: Name of the sheet tab (ignored if `csv_file` is set)
 - `subject`: Subject line (supports template variables like `{Name}`)
 - `mode`: Either `"individual"` (one email per row) or `"bcc"` (one email to all)
 - `required_columns`: Column names that must exist in the sheet
+- `column_mapping`: Optional mapping to rename sheet/CSV columns for templates
 - `template_vars`: Optional default values for template variables
+- `csv_file`: Optional CSV filename in the job folder; when set, data is loaded from this CSV instead of Google Sheets
 
 ### template.html Format
 

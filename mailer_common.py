@@ -175,8 +175,12 @@ def load_job_config(job_folder: str) -> Dict:
     except json.JSONDecodeError as e:
         raise SystemExit(f"Invalid JSON in {config_file}: {e}")
     
+    csv_file = config.get("csv_file")
+
     # Validate required fields
-    required_fields = ["spreadsheet_id", "sheet_name", "subject", "mode"]
+    required_fields = ["subject", "mode"]
+    if not csv_file:
+        required_fields.extend(["spreadsheet_id", "sheet_name"])
     missing = [field for field in required_fields if field not in config]
     if missing:
         raise SystemExit(f"Missing required fields in config.json: {', '.join(missing)}")

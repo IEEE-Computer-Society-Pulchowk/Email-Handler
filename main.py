@@ -1,4 +1,7 @@
 import argparse
+from pathlib import Path
+
+import pandas as pd
 
 from mailer_common import (
     Mode,
@@ -71,12 +74,20 @@ def run_job(job_folder: str, dry_run: bool = False):
     """
     job = load_job_config(job_folder)
     gmail_service, sheets_service = get_services()
-    df = fetch_sheet_dataframe(
-        sheets_service,
-        job["spreadsheet_id"],
-        job["sheet_name"],
-        job.get("range_name"),
-    )
+
+    csv_file = job.get("csv_file")
+    if csv_file:
+        csv_path = Path(job_folder) / csv_file
+        if not csv_path.exists():
+            raise SystemExit(f"CSV file not found: {csv_path}")
+        df = pd.read_csv(csv_path)
+    else:
+        df = fetch_sheet_dataframe(
+            sheets_service,
+            job["spreadsheet_id"],
+            job["sheet_name"],
+            job.get("range_name"),
+        )
 
     if df.empty:
         print("No data found in the selected sheet.")
