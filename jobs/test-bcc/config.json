@@ -1,0 +1,17 @@
+{
+    "sender_email": "pulchowkcompsbc@gmail.com",
+    "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+    "spreadsheet_id": "12XPszk2NA6k_J-XyyeN0DgP5FQqacGgYav02vMQKzu8",
+    "sheet_name": "TEST",
+    "subject": "{event_name} - Thank You!",
+    "mode": "bcc",
+    "required_columns": [
+        "Email"
+    ],
+    "column_mapping": {},
+    "template_vars": {
+        "event_name": "Test",
+        "event_date": "January 2026",
+        "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+    }
+}
