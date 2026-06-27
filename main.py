@@ -79,34 +79,47 @@ def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
     gmail_service, sheets_service = get_services()
 
     has_csv = "csv_file" in job
-    has_sheets = "spreadsheet_id" in job and "sheet_name" in job
+    has_prod_sheets = "spreadsheet_id" in job and "sheet_name" in job
+    has_test_sheets = "test_spreadsheet_id" in job and "test_sheet_name" in job
 
-    if has_csv and has_sheets:
+    # ── Decide source ───────────────────────────────────────────
+    # --test with test sheets → auto use sheets
+    # --test with test CSV only (no test sheets) → auto use CSV
+    # Normal run with both CSV and prod sheets → ask
+    # Otherwise pick whatever is configured
+
+    if use_test and has_test_sheets:
+        use_sheets = True
+        use_csv = False
+    elif use_test and has_csv:
+        use_sheets = False
+        use_csv = True
+    elif has_csv and has_prod_sheets:
         print("Warning: both CSV and Google Sheets are configured in config.json.")
         choice = input("Use (c)sv or (s)heets? [C/s]: ").strip().lower()
-        if choice == "s":
-            has_csv = False
-        else:
-            has_sheets = False
+        use_sheets = choice == "s"
+        use_csv = not use_sheets
+    elif has_csv:
+        use_sheets = False
+        use_csv = True
+    else:
+        use_sheets = True
+        use_csv = False
 
-    if has_csv:
+    if use_csv:
         csv_file = (
-            job.get("test_csv_file", job["csv_file"]) if use_test else job["csv_file"]
+            job["csv_file"]
+            if not use_test
+            else job.get("test_csv_file", job["csv_file"])
         )
         csv_path = Path(job_folder) / csv_file
         if not csv_path.exists():
             raise SystemExit(f"CSV file not found: {csv_path}")
         df = pd.read_csv(csv_path)
     else:
-        sheet_name = (
-            job.get("test_sheet_name", job["sheet_name"])
-            if use_test
-            else job["sheet_name"]
-        )
+        sheet_name = job["sheet_name"] if not use_test else job["test_sheet_name"]
         spreadsheet_id = (
-            job.get("test_spreadsheet_id", job["spreadsheet_id"])
-            if use_test
-            else job["spreadsheet_id"]
+            job["spreadsheet_id"] if not use_test else job["test_spreadsheet_id"]
         )
 
         df = fetch_sheet_dataframe(
