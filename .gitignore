@@ -6,9 +6,10 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
 .env.local
 token.json
 credentials.json
+
 logs/
 *.log
-*.csv
