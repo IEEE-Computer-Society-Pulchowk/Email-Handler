@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            font-family: Arial, Helvetica, sans-serif;
+        "
+    >
+        <div
+            style="
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            "
+        >
+            <!-- Header Image -->
+            <img
+                src="https://drive.google.com/thumbnail?id=1AivSRejp0kF37IAtIwkRTUYiVQ0-531P&sz=w1200"
+                alt="IEEE CS Pulchowk SBC"
+                style="width: 100%; display: block"
+            />
+            <!-- Content. Note: {name}/{time} are lowercase — supplied by column_mapping. -->
+            <div style="padding: 24px; color: #1f2933; line-height: 1.6">
+                <p>Dear {name},</p>
+                <p>Your interview is scheduled for <strong>{time}</strong>.</p>
+                <p>Please arrive five minutes early.</p>
+                <p style="margin-top: 32px">
+                    Best regards,<br />
+                    <strong>{organization}</strong>
+                </p>
+            </div>
+        </div>
+    </body>
+</html>

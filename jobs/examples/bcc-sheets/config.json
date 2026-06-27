@@ -1,0 +1,15 @@
+{
+  "sender_email": "pulchowkcompsbc@gmail.com",
+  "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+  "spreadsheet_id": "YOUR_SPREADSHEET_ID",
+  "sheet_name": "Sheet1",
+  "test_spreadsheet_id": "YOUR_TEST_SPREADSHEET_ID",
+  "test_sheet_name": "TestSheet",
+  "subject": "Thank You for Attending {event_name}",
+  "mode": "bcc",
+  "required_columns": ["Email"],
+  "template_vars": {
+    "event_name": "Linux 101 Workshop",
+    "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+  }
+}
