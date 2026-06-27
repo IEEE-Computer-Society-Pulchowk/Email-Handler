@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict
 
 # Default sender identity — edit here to change the org's From address/name.
-DEFAULT_SENDER_EMAIL = "pulchowkcompsbc@gmail.com"
+DEFAULT_SENDER_EMAIL = "ieeecs@pcampus.edu.np"
 DEFAULT_SENDER_NAME = "IEEE Computer Society Pulchowk Student Branch Chapter"
 
 # Shared OAuth scopes for Gmail send and Sheets read access.

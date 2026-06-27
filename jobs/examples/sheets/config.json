@@ -1,18 +1,18 @@
 {
-    "sender_email": "pulchowkcompsbc@gmail.com",
-    "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
-    "spreadsheet_id": "YOUR_SPREADSHEET_ID",
-    "sheet_name": "Sheet1",
-    "test_spreadsheet_id": "YOUR_TEST_SPREADSHEET_ID",
-    "test_sheet_name": "TestSheet",
-    "subject": "Interview Schedule - {name}",
-    "mode": "individual",
-    "required_columns": ["Name", "Email", "Time"],
-    "column_mapping": {
-        "Name": "name",
-        "Time": "time"
-    },
-    "template_vars": {
-        "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
-    }
+  "sender_email": "ieeecs@pcampus.edu.np",
+  "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+  "spreadsheet_id": "YOUR_SPREADSHEET_ID",
+  "sheet_name": "Sheet1",
+  "test_spreadsheet_id": "YOUR_TEST_SPREADSHEET_ID",
+  "test_sheet_name": "TestSheet",
+  "subject": "Interview Schedule - {name}",
+  "mode": "individual",
+  "required_columns": ["Name", "Email", "Time"],
+  "column_mapping": {
+    "Name": "name",
+    "Time": "time"
+  },
+  "template_vars": {
+    "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+  }
 }
