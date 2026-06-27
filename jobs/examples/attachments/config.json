@@ -1,0 +1,13 @@
+{
+  "sender_email": "pulchowkcompsbc@gmail.com",
+  "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+  "subject": "Your certificate - {Name}",
+  "mode": "individual",
+  "required_columns": ["Name", "Email"],
+  "template_vars": {
+    "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+  },
+  "attachments": ["flyer.txt"],
+  "attachment_columns": ["Certificate"],
+  "csv_file": "data.csv"
+}

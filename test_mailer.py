@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from src.config import Mode, load_job_config
+from src.main import row_attachment_paths
 from src.mailer import apply_column_mapping, build_raw_message, render_template
 
 EXAMPLES = Path(__file__).parent / "jobs" / "examples"
@@ -36,6 +37,37 @@ def test_build_raw_message():
     assert msg["Subject"] == "Subj"
     assert msg["Bcc"] == "a@x.com, b@x.com"
     assert "<p>Hello</p>" in msg.get_payload()[0].get_payload()
+
+
+def test_build_raw_message_with_attachments():
+    flyer = str(EXAMPLES / "attachments" / "flyer.txt")
+    raw = build_raw_message(
+        "Org <org@x.com>", "to@x.com", "Subj", "<p>Hi</p>", attachments=[flyer]
+    )
+    msg = message_from_bytes(base64.urlsafe_b64decode(raw))
+    assert msg.get_content_subtype() == "mixed", msg.get_content_type()
+    names = [p.get_filename() for p in msg.get_payload() if p.get_filename()]
+    assert names == ["flyer.txt"], names
+
+
+def test_row_attachment_paths():
+    job = {
+        "attachments": ["/static/flyer.txt"],
+        "attachment_columns": ["Certificate"],
+        "job_folder": str(EXAMPLES / "attachments"),
+    }
+    # static + valid dynamic
+    paths = row_attachment_paths(job, {"Email": "a@x.com", "Certificate": "certs/alice.txt"})
+    assert paths[0] == "/static/flyer.txt"
+    assert paths[1].endswith("certs/alice.txt")
+    # blank dynamic cell → static only
+    assert row_attachment_paths(job, {"Email": "c@x.com", "Certificate": np.nan}) == ["/static/flyer.txt"]
+    # missing named file → SystemExit
+    try:
+        row_attachment_paths(job, {"Email": "x@x.com", "Certificate": "certs/nope.txt"})
+        assert False, "expected SystemExit for missing attachment"
+    except SystemExit:
+        pass
 
 
 def test_all_example_configs_valid():

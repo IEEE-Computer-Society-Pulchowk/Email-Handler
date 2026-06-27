@@ -99,6 +99,8 @@ def load_job_config(job_folder: str) -> Dict:
     config.setdefault("required_columns", ["Email"])
     config.setdefault("template_vars", {})
     config.setdefault("column_mapping", {})
+    config.setdefault("attachments", [])  # static files attached to every email
+    config.setdefault("attachment_columns", [])  # per-row file paths from these columns
     # Test fields default to production values if not specified
     if csv_file:
         config.setdefault("test_csv_file", csv_file)
@@ -106,5 +108,15 @@ def load_job_config(job_folder: str) -> Dict:
         config.setdefault("test_sheet_name", config["sheet_name"])
         config.setdefault("test_spreadsheet_id", config["spreadsheet_id"])
     config["template_file"] = str(template_file.absolute())
+    config["job_folder"] = str(job_path)  # for resolving dynamic attachment paths
+
+    # Resolve + validate static attachments (relative to the job folder).
+    resolved = []
+    for a in config["attachments"]:
+        path = (job_path / a).resolve()
+        if not path.exists():
+            raise SystemExit(f"Attachment not found: {path}")
+        resolved.append(str(path))
+    config["attachments"] = resolved
 
     return config
