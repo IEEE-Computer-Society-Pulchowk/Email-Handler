@@ -102,9 +102,14 @@ def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
     elif has_csv:
         use_sheets = False
         use_csv = True
-    else:
+    elif has_prod_sheets:
         use_sheets = True
         use_csv = False
+    else:
+        # Only test sheets configured without --test
+        print("Test-only sheets config. Use --test to read from the test sheet.")
+        print("Or add spreadsheet_id and sheet_name for production use.")
+        return
 
     if use_csv:
         csv_file = (

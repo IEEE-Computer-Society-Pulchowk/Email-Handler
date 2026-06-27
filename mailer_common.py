@@ -189,10 +189,13 @@ def load_job_config(job_folder: str) -> Dict:
         raise SystemExit(f"Invalid JSON in {config_file}: {e}")
 
     csv_file = config.get("csv_file")
+    has_sheets = ("spreadsheet_id" in config and "sheet_name" in config) or (
+        "test_spreadsheet_id" in config and "test_sheet_name" in config
+    )
 
     # Validate required fields
     required_fields = ["subject", "mode"]
-    if not csv_file:
+    if not csv_file and not has_sheets:
         required_fields.extend(["spreadsheet_id", "sheet_name"])
     missing = [field for field in required_fields if field not in config]
     if missing:
@@ -220,7 +223,7 @@ def load_job_config(job_folder: str) -> Dict:
     # Test fields default to production values if not specified
     if csv_file:
         config.setdefault("test_csv_file", csv_file)
-    else:
+    elif "spreadsheet_id" in config and "sheet_name" in config:
         config.setdefault("test_sheet_name", config["sheet_name"])
         config.setdefault("test_spreadsheet_id", config["spreadsheet_id"])
     config["template_file"] = str(template_file.absolute())
