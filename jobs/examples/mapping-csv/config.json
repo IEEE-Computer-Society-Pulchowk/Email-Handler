@@ -1,0 +1,15 @@
+{
+  "sender_email": "pulchowkcompsbc@gmail.com",
+  "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+  "subject": "Interview Schedule - {name}",
+  "mode": "individual",
+  "required_columns": ["Name", "Email", "Time"],
+  "column_mapping": {
+    "Name": "name",
+    "Time": "time"
+  },
+  "template_vars": {
+    "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+  },
+  "csv_file": "data.csv"
+}

@@ -21,20 +21,30 @@ python main.py jobs/examples/individual --dry-run
 
 ```
 .
-├── main.py
-├── mailer_common.py
+├── main.py                       # thin entry point → src.main:main()
+├── src/                          # package
+│   ├── config.py                 # Mode, SafeDict, scopes, sender defaults, config loading
+│   ├── auth.py                   # Google OAuth (get_services)
+│   ├── data.py                   # Google Sheets → DataFrame
+│   ├── mailer.py                 # templating + Gmail message build/send
+│   └── main.py                   # CLI + job orchestration
+├── test_mailer.py                # offline checks (no network/auth)
 ├── requirements.txt
-├── setup.py                     # one-time setup (cross-platform)
+├── setup.py                      # one-time setup (cross-platform)
 ├── credentials.example.json
 ├── credentials.json              # your OAuth client (see Credentials & Auth)
 ├── token.json                    # generated after first auth
 └── jobs/
     ├── .gitignore                # ignores everything except examples/
     ├── examples/
-    │   ├── individual/
-    │   ├── bcc/
-    │   ├── csv/
-    │   └── sheets/
+    │   ├── individual/           # individual, CSV
+    │   ├── bcc/                   # bcc, CSV
+    │   ├── csv/                   # individual, CSV with test CSV
+    │   ├── sheets/               # individual, Google Sheets
+    │   ├── bcc-sheets/           # bcc, Google Sheets
+    │   ├── mapping-csv/          # individual, CSV with column_mapping
+    │   ├── personalized/        # individual, multi-column + template_vars
+    │   └── optional-fields/     # individual, optional blank column (SafeDict)
     └── mail-jobs/                # private repo — clone with setup.sh
 ```
 
@@ -158,6 +168,27 @@ python main.py jobs/examples/sheets --dry-run
 
 # Sheets: preview (test sheet)
 python main.py jobs/examples/sheets --test --dry-run
+
+# CSV: column_mapping (renames Name→name, Time→time for the template)
+python main.py jobs/examples/mapping-csv --dry-run
+
+# CSV: multi-column personalization (Time, Venue, Role + template_vars)
+python main.py jobs/examples/personalized --dry-run
+
+# CSV: optional blank column renders gracefully (SafeDict)
+python main.py jobs/examples/optional-fields --dry-run
+
+# Sheets: BCC mode (needs a real spreadsheet_id)
+python main.py jobs/examples/bcc-sheets --test --dry-run
+```
+
+## Tests
+
+Offline checks — no network, no auth, no emails sent. Validates templating,
+column mapping, message building, and that every `jobs/examples/*` config loads:
+
+```bash
+python test_mailer.py
 ```
 
 **Flags:**
@@ -237,6 +268,10 @@ python main.py jobs/examples/sheets --test --dry-run
 | BCC | CSV | [jobs/examples/bcc](jobs/examples/bcc) |
 | Individual | CSV (alt, w/ test CSV) | [jobs/examples/csv](jobs/examples/csv) |
 | Individual | Google Sheets | [jobs/examples/sheets](jobs/examples/sheets) |
+| BCC | Google Sheets | [jobs/examples/bcc-sheets](jobs/examples/bcc-sheets) |
+| Individual (column_mapping) | CSV | [jobs/examples/mapping-csv](jobs/examples/mapping-csv) |
+| Individual (multi-column + vars) | CSV | [jobs/examples/personalized](jobs/examples/personalized) |
+| Individual (optional blank field) | CSV | [jobs/examples/optional-fields](jobs/examples/optional-fields) |
 
 CSV examples are ready to run after running `./setup.sh`. The Sheets example needs a real spreadsheet ID — copy the folder and update `spreadsheet_id`.
 
