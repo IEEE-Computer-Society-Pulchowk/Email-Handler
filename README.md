@@ -44,7 +44,8 @@ python main.py jobs/examples/individual --dry-run
     │   ├── bcc-sheets/           # bcc, Google Sheets
     │   ├── mapping-csv/          # individual, CSV with column_mapping
     │   ├── personalized/        # individual, multi-column + template_vars
-    │   └── optional-fields/     # individual, optional blank column (SafeDict)
+    │   ├── optional-fields/     # individual, optional blank column (SafeDict)
+    │   └── attachments/         # individual, static + per-row attachments
     └── mail-jobs/                # private repo — clone with setup.sh
 ```
 
@@ -119,6 +120,8 @@ jobs/your-job-name/
 | `required_columns` | required | required | Columns that must exist in the data |
 | `template_vars` | optional | optional | Extra variables available in the template |
 | `column_mapping` | — | optional | Rename sheet columns for template use (`"Name"` → `"name"`) |
+| `attachments` | optional | optional | List of static files attached to **every** email (paths relative to the job folder) |
+| `attachment_columns` | optional | optional | List of column names whose cell holds a per-row file path (relative to the job folder); `individual` mode only, blank cells are skipped |
 | `csv_file` | required | — | Path to the CSV file (relative to the job folder) |
 | `test_csv_file` | optional | — | Test CSV file used when `--test` is passed (defaults to `csv_file`) |
 | `spreadsheet_id` | — | required | Google Sheet ID from the sheet URL |
@@ -137,6 +140,24 @@ Use `{placeholder}` values that match CSV/Sheet column names (after `column_mapp
 ```
 
 The IEEE CS Pulchowk header image is included in all example templates.
+
+### Attachments
+
+Two optional, combinable fields (use either, both, or several of each):
+
+```json
+{
+  "attachments": ["flyer.pdf"],
+  "attachment_columns": ["Certificate"]
+}
+```
+
+- `attachments` — static files sent with every email (works in both modes).
+- `attachment_columns` — for `individual` mode, each listed column holds a file
+  path for that row; blank cells are skipped. Paths are relative to the job
+  folder. Missing files are reported up front (caught by `--dry-run`).
+
+See [jobs/examples/attachments](jobs/examples/attachments) for both at once.
 
 ### data.csv
 
@@ -177,6 +198,9 @@ python main.py jobs/examples/personalized --dry-run
 
 # CSV: optional blank column renders gracefully (SafeDict)
 python main.py jobs/examples/optional-fields --dry-run
+
+# CSV: static + per-row attachments
+python main.py jobs/examples/attachments --dry-run
 
 # Sheets: BCC mode (needs a real spreadsheet_id)
 python main.py jobs/examples/bcc-sheets --test --dry-run
@@ -272,6 +296,7 @@ python test_mailer.py
 | Individual (column_mapping) | CSV | [jobs/examples/mapping-csv](jobs/examples/mapping-csv) |
 | Individual (multi-column + vars) | CSV | [jobs/examples/personalized](jobs/examples/personalized) |
 | Individual (optional blank field) | CSV | [jobs/examples/optional-fields](jobs/examples/optional-fields) |
+| Individual (static + per-row attachments) | CSV | [jobs/examples/attachments](jobs/examples/attachments) |
 
 CSV examples are ready to run after running `./setup.sh`. The Sheets example needs a real spreadsheet ID — copy the folder and update `spreadsheet_id`.
 

@@ -23,6 +23,25 @@ def ensure_columns(df, required):
         raise SystemExit(f"Missing columns in sheet: {', '.join(missing)}")
 
 
+def row_attachment_paths(job, row):
+    """Static + dynamic (per-row column) attachment paths for one row.
+
+    Blank/NaN dynamic cells are skipped; a named-but-missing file raises.
+    """
+    paths = list(job["attachments"])
+    for col in job["attachment_columns"]:
+        val = row.get(col)
+        if val is None or pd.isna(val) or str(val).strip() == "":
+            continue
+        path = Path(job["job_folder"]) / str(val).strip()
+        if not path.exists():
+            raise SystemExit(
+                f"Attachment not found for {row.get('Email', '?')}: {path}"
+            )
+        paths.append(str(path))
+    return paths
+
+
 def send_bcc(gmail_service, job, df, sender_email, sender_name):
     recipients = df["Email"].dropna().unique().tolist()
     if not recipients:
@@ -35,7 +54,12 @@ def send_bcc(gmail_service, job, df, sender_email, sender_name):
 
     sender_header = f"{sender_name} <{sender_email}>"
     raw = build_raw_message(
-        sender_header, sender_email, subject, html_body, bcc=recipients
+        sender_header,
+        sender_email,
+        subject,
+        html_body,
+        bcc=recipients,
+        attachments=job["attachments"],  # static only; per-row makes no sense for BCC
     )
     send_raw_message(gmail_service, raw)
     print(f"Sent one BCC email to {len(recipients)} recipients.")
@@ -52,7 +76,10 @@ def send_individual(gmail_service, job, df, sender_email, sender_name):
         subject = render_template(job["subject"], context)
         html_body = render_template(html_template, context)
 
-        raw = build_raw_message(sender_header, row["Email"], subject, html_body)
+        attachments = row_attachment_paths(job, row)
+        raw = build_raw_message(
+            sender_header, row["Email"], subject, html_body, attachments=attachments
+        )
         send_raw_message(gmail_service, raw)
         print(f"Sent to {row.get('Name', '(no name)')} ({row['Email']})")
 
@@ -137,6 +164,11 @@ def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
         return
 
     ensure_columns(df, job.get("required_columns", ["Email"]))
+
+    # Validate dynamic attachments up front so --dry-run catches missing files.
+    if job["attachment_columns"]:
+        for _, row in df.iterrows():
+            row_attachment_paths(job, row)
 
     sender_email = job["sender_email"]
     sender_name = job["sender_name"]

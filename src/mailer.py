@@ -1,6 +1,10 @@
 import base64
+import mimetypes
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -28,14 +32,27 @@ def apply_column_mapping(row_data: Dict, column_mapping: Dict) -> Dict:
     }
 
 
+def _build_attachment(path: str) -> MIMEBase:
+    ctype, _ = mimetypes.guess_type(path)
+    maintype, subtype = (ctype or "application/octet-stream").split("/", 1)
+    with open(path, "rb") as f:
+        part = MIMEBase(maintype, subtype)
+        part.set_payload(f.read())
+    encoders.encode_base64(part)
+    part.add_header("Content-Disposition", "attachment", filename=Path(path).name)
+    return part
+
+
 def build_raw_message(
     sender: str,
     recipient: str,
     subject: str,
     html_body: str,
     bcc: Optional[List[str]] = None,
+    attachments: Optional[List[str]] = None,
 ) -> str:
-    msg = MIMEMultipart("alternative")
+    # mixed wraps body + files; alternative is enough for a body-only mail.
+    msg = MIMEMultipart("mixed" if attachments else "alternative")
     msg["From"] = sender
     msg["To"] = recipient
     msg["Subject"] = subject
@@ -44,6 +61,8 @@ def build_raw_message(
         msg["Bcc"] = ", ".join(bcc)
 
     msg.attach(MIMEText(html_body, "html"))
+    for path in attachments or []:
+        msg.attach(_build_attachment(path))
     return base64.urlsafe_b64encode(msg.as_bytes()).decode()
 
 
