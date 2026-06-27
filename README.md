@@ -5,6 +5,15 @@ Send bulk personalized or BCC emails using data from Google Sheets or local CSV 
 ## Quick Start
 
 ```bash
+# One-time setup (works on Windows, macOS, Linux)
+python setup.py
+
+# Run an example (preview only)
+# On macOS/Linux:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
+
 python main.py jobs/examples/individual --dry-run
 ```
 
@@ -15,31 +24,18 @@ python main.py jobs/examples/individual --dry-run
 ├── main.py
 ├── mailer_common.py
 ├── requirements.txt
+├── setup.py                     # one-time setup (cross-platform)
 ├── credentials.example.json
 ├── credentials.json              # your OAuth client (see Credentials & Auth)
 ├── token.json                    # generated after first auth
 └── jobs/
-    ├── .gitignore                # ignore all real job folders
-    └── examples/
-        ├── individual/           # one personalized email per row
-        │   ├── config.json
-        │   ├── data.csv
-        │   └── template.html
-        ├── bcc/                  # single email to all recipients
-        │   ├── config.json
-        │   ├── data.csv
-        │   └── template.html
-        ├── sheets/               # Google Sheets data source
-        │   ├── config.json
-        │   └── template.html
-        ├── csv/                  # alternate CSV example
-        │   ├── config.json
-        │   ├── data.csv
-        │   └── template.html
-        └── individual/           # one personalized email per row (CSV)
-            ├── config.json
-            ├── data.csv
-            └── template.html
+    ├── .gitignore                # ignores everything except examples/
+    ├── examples/
+    │   ├── individual/
+    │   ├── bcc/
+    │   ├── csv/
+    │   └── sheets/
+    └── mail-jobs/                # private repo — clone with setup.sh
 ```
 
 ## Job Folder Structure
@@ -242,7 +238,7 @@ python main.py jobs/examples/sheets --test --dry-run
 | Individual | CSV (alt, w/ test CSV) | [jobs/examples/csv](jobs/examples/csv) |
 | Individual | Google Sheets | [jobs/examples/sheets](jobs/examples/sheets) |
 
-CSV examples are ready to run. The Sheets example needs a real spreadsheet ID — copy the folder and update `spreadsheet_id`.
+CSV examples are ready to run after running `./setup.sh`. The Sheets example needs a real spreadsheet ID — copy the folder and update `spreadsheet_id`.
 
 ## Environment
 
@@ -253,8 +249,29 @@ CSV examples are ready to run. The Sheets example needs a real spreadsheet ID �
 pip install -r requirements.txt
 ```
 
+## Keeping jobs separate
+
+Real campaign data lives in the **private** repo:
+
+```
+https://github.com/IEEE-Computer-Society-Pulchowk/mail-jobs
+```
+
+Clone it into `jobs/` (the folder is gitignored so nothing leaks):
+
+```bash
+python setup.py   # does this automatically, or manually:
+git clone git@github.com:IEEE-Computer-Society-Pulchowk/mail-jobs.git jobs/mail-jobs
+```
+
+Then run:
+
+```bash
+python main.py jobs/mail-jobs/my-campaign --dry-run
+```
+
 ## Safety Notes
 
 - Always run with `--dry-run` before sending for real.
 - Check sender details and subject in the preview output.
-- Keep your real job data inside `jobs/your-job-name/` (the `.gitignore` ignores everything except `jobs/examples/`).
+- Keep recipient data in the private `mail-jobs` repo, not here.
