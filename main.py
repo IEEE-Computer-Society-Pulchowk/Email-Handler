@@ -34,7 +34,9 @@ def send_bcc(gmail_service, job, df, sender_email, sender_name):
     subject = render_template(job["subject"], job.get("template_vars", {}))
 
     sender_header = f"{sender_name} <{sender_email}>"
-    raw = build_raw_message(sender_header, sender_email, subject, html_body, bcc=recipients)
+    raw = build_raw_message(
+        sender_header, sender_email, subject, html_body, bcc=recipients
+    )
     send_raw_message(gmail_service, raw)
     print(f"Sent one BCC email to {len(recipients)} recipients.")
 
@@ -67,26 +69,46 @@ MODE_HANDLERS = {
 
 def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
     """Run a mail job from a job folder containing config.json and template.html.
-    
+
     Args:
         job_folder: Path to the job folder
         dry_run: If True, preview only without sending
-        use_test: If True, use test_sheet_name and test_spreadsheet_id
+        use_test: If True, use test data source
     """
     job = load_job_config(job_folder)
     gmail_service, sheets_service = get_services()
 
-    csv_file = job.get("csv_file")
-    if csv_file:
+    has_csv = "csv_file" in job
+    has_sheets = "spreadsheet_id" in job and "sheet_name" in job
+
+    if has_csv and has_sheets:
+        print("Warning: both CSV and Google Sheets are configured in config.json.")
+        choice = input("Use (c)sv or (s)heets? [C/s]: ").strip().lower()
+        if choice == "s":
+            has_csv = False
+        else:
+            has_sheets = False
+
+    if has_csv:
+        csv_file = (
+            job.get("test_csv_file", job["csv_file"]) if use_test else job["csv_file"]
+        )
         csv_path = Path(job_folder) / csv_file
         if not csv_path.exists():
             raise SystemExit(f"CSV file not found: {csv_path}")
         df = pd.read_csv(csv_path)
     else:
-        # Use test values if --test flag is set
-        sheet_name = job.get("test_sheet_name", job["sheet_name"]) if use_test else job["sheet_name"]
-        spreadsheet_id = job.get("test_spreadsheet_id", job["spreadsheet_id"]) if use_test else job["spreadsheet_id"]
-        
+        sheet_name = (
+            job.get("test_sheet_name", job["sheet_name"])
+            if use_test
+            else job["sheet_name"]
+        )
+        spreadsheet_id = (
+            job.get("test_spreadsheet_id", job["spreadsheet_id"])
+            if use_test
+            else job["spreadsheet_id"]
+        )
+
         df = fetch_sheet_dataframe(
             sheets_service,
             spreadsheet_id,
@@ -123,7 +145,9 @@ def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
     handler = MODE_HANDLERS.get(mode)
     if not handler:
         supported = ", ".join(m.value for m in MODE_HANDLERS)
-        raise SystemExit(f"Unsupported mode '{job['mode']}'. Expected one of: {supported}")
+        raise SystemExit(
+            f"Unsupported mode '{job['mode']}'. Expected one of: {supported}"
+        )
 
     handler(gmail_service, job, df, sender_email, sender_name)
 
@@ -131,21 +155,19 @@ def run_job(job_folder: str, dry_run: bool = False, use_test: bool = False):
 def main():
     parser = argparse.ArgumentParser(
         description="Send emails from Google Sheets data using a job folder configuration.",
-        epilog="Example: python main.py jobs/test-job --dry-run"
+        epilog="Example: python main.py jobs/test-job --dry-run",
     )
     parser.add_argument(
         "job_folder",
-        help="Path to the job folder containing config.json and template.html"
+        help="Path to the job folder containing config.json and template.html",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview without sending emails."
+        "--dry-run", action="store_true", help="Preview without sending emails."
     )
     parser.add_argument(
         "--test",
         action="store_true",
-        help="Use test_sheet_name and test_spreadsheet_id instead of production values."
+        help="Use test_sheet_name and test_spreadsheet_id instead of production values.",
     )
     args = parser.parse_args()
 

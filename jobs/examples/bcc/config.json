@@ -1,0 +1,12 @@
+{
+  "sender_email": "pulchowkcompsbc@gmail.com",
+  "sender_name": "IEEE Computer Society Pulchowk Student Branch Chapter",
+  "subject": "Thank You for Attending {event_name}",
+  "mode": "bcc",
+  "required_columns": ["Email"],
+  "template_vars": {
+    "event_name": "Demo Event",
+    "organization": "IEEE Computer Society Pulchowk Student Branch Chapter"
+  },
+  "csv_file": "data.csv"
+}
